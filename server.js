@@ -6,44 +6,42 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
+import movieRoutes from "./routes/movieRoutes.js";
 
-// Load Environment Variables
+
 dotenv.config();
 
-// Connect to Database
 connectDB();
 
 const app = express();
 
-// --- MIDDLEWARES ---
 
-// 1. CORS Configuration (Zaroori: Razorpay aur Frontend connectivity ke liye)
+
 app.use(cors({
-  origin: "http://localhost:3000", // Aapka frontend port
+  origin: "http://localhost:3000", 
   methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true, // Cookies aur Auth headers ke liye
+  credentials: true, 
 }));
 
-// 2. Body Parsers (Zaroori: req.body read karne ke liye)
-app.use(express.json()); // JSON data ke liye
-app.use(express.urlencoded({ extended: true })); // Form data ke liye
+app.use("/uploads", express.static("uploads"));
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true })); 
 
-// 3. Cookie Parser
+
 app.use(cookieParser());
 
-// --- ROUTES ---
+
 
 app.use("/api/auth", authRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/movies", movieRoutes);
 
-// Health Check Route
+
 app.get("/", (req, res) => {
   res.send("Movie Backend Running 🚀");
 });
 
-// --- GLOBAL ERROR HANDLER ---
-// Agar koi route crash hota hai toh server band nahi hoga
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   res.status(statusCode).json({
