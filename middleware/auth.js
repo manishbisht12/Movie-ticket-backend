@@ -45,14 +45,14 @@ export const isAuthenticated = async (req, res, next) => {
     if (!token) {
       return res.status(401).json({ success: false, message: "Login required" });
     }
-
+    
     const decodedData = jwt.verify(token, process.env.JWT_SECRET);
     req.user = await User.findById(decodedData.id);
-
+    
     if (!req.user) {
       return res.status(401).json({ success: false, message: "User not found" });
     }
-
+     
     next();
   } catch (error) {
     return res.status(401).json({ success: false, message: "Invalid or Expired Token" });
