@@ -20,11 +20,12 @@ const transporter = nodemailer.createTransport({
 export const registerUser = async (req, res) => {
   try {
     const { name, email, phone } = req.body;
+    console.log("Attempting to send OTP to:", email);
 
     if (!name || !email || !phone) {
       return res.status(400).json({ message: "All fields are required" });
     }
-
+  
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
@@ -34,9 +35,10 @@ export const registerUser = async (req, res) => {
 
     // Send Email
     const mailOptions = {
-      from: '"MovieBooking Support" <manibisht345@gmail.com>',
-      to: email,
-      subject: "Verify Your Account - OTP",
+      from: `"MovieBooking Support" <${process.env.EMAIL_USER}>`, 
+      to: email.toLowerCase().trim(),
+       subject: "Confirm your MovieBooking registration",
+      text: `Hello ${name}, your MovieBooking verification code is ${otp}. It will expire in 5 minutes.`, 
       html: `
         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #ddd;">
           <h2 style="color: #ef4444;">Welcome to MovieBooking</h2>
