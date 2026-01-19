@@ -27,7 +27,7 @@ const app = express();
 
 
 app.use(cors({
-  origin: "*", 
+  origin: "https://movie-ticket-topaz.vercel.app", 
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true, 
   allowedHeaders: ["Content-Type", "Authorization"]
