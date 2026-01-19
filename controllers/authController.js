@@ -6,11 +6,11 @@ import dotenv from "dotenv";
 
 dotenv.config(); 
 
-// Updated Transporter: Port/Host ke jhanjhat se bachne ke liye 'service' use karein
+
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
+  secure: true, 
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
@@ -20,9 +20,7 @@ const transporter = nodemailer.createTransport({
 export const registerUser = async (req, res) => {
   try {
     const { name, email, phone } = req.body;
-    
-    // Server logs ke liye useful hai
-    console.log(`Registration attempt: ${email}`);
+    console.log("Attempting to send OTP to:", email);
 
     if (!name || !email || !phone) {
       return res.status(400).json({ message: "All fields are required" });
@@ -35,11 +33,12 @@ export const registerUser = async (req, res) => {
 
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
 
+    // Send Email
     const mailOptions = {
       from: `"MovieBooking Support" <${process.env.EMAIL_USER}>`, 
       to: email.toLowerCase().trim(),
-      subject: "Confirm your MovieBooking registration",
-      text: `Hello ${name}, your MovieBooking verification code is ${otp}.`, 
+       subject: "Confirm your MovieBooking registration",
+      text: `Hello ${name}, your MovieBooking verification code is ${otp}. It will expire in 5 minutes.`, 
       html: `
         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #ddd;">
           <h2 style="color: #ef4444;">Welcome to MovieBooking</h2>
@@ -51,14 +50,11 @@ export const registerUser = async (req, res) => {
       `,
     };
 
-    // Note: transporter.verify() ko skip kar rahe hain taaki timeout ka risk kam ho
     await transporter.sendMail(mailOptions);
-    console.log("✅ OTP Email sent successfully");
 
-    // Database mein entry tabhi banayein jab email chala jaye
     await User.create({
       name,
-      email: email.toLowerCase().trim(),
+      email,
       phone,
       otp,
       otpExpiresAt: Date.now() + 5 * 60 * 1000,
@@ -66,12 +62,7 @@ export const registerUser = async (req, res) => {
 
     res.status(201).json({ success: true, message: "OTP sent to email" });
   } catch (error) {
-    console.error("❌ Registration/Email Error:", error.message);
-    res.status(500).json({ 
-      success: false, 
-      message: "Email service connection timed out. Please try again.", 
-      error: error.message 
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -89,7 +80,7 @@ export const verifyOtp = async (req, res) => {
     user.otpExpiresAt = null;
     await user.save();
 
-    res.json({ success: true, message: "Verified successfully" });
+    res.json({ success: true, message: "Verified" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -113,6 +104,29 @@ export const setPassword = async (req, res) => {
   }
 };
 
+// export const loginUser = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+//     const user = await User.findOne({ email });
+
+//     if (!user || !(await bcrypt.compare(password, user.password))) {
+//       return res.status(400).json({ message: "Invalid credentials" });
+//     }
+
+//     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || "secret", { expiresIn: "7d" });
+
+//     res.cookie("token", token, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: "lax",
+//       maxAge: 7 * 24 * 60 * 60 * 1000,
+//     });
+
+//     res.json({ success: true, user: { name: user.name, email: user.email } });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -124,13 +138,12 @@ export const loginUser = async (req, res) => {
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || "secret", { expiresIn: "7d" });
 
-    // Live environment ke liye settings
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,   // HTTPS mandatory for Vercel
-      sameSite: "none", // Required for cross-site cookies
+      secure: false, // Development ke liye false hi rakhein
+      sameSite: "lax", 
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: "/" 
+      path: "/" // Ensure cookie is available everywhere
     });
 
     res.json({ success: true, user: { name: user.name, email: user.email } });
@@ -140,19 +153,21 @@ export const loginUser = async (req, res) => {
 };
 
 export const logoutUser = async (req, res) => {
-  res.cookie("token", "", { 
-    httpOnly: true, 
-    secure: true, 
-    sameSite: "none", 
-    expires: new Date(0) 
-  });
+  res.cookie("token", "", { httpOnly: true, expires: new Date(0) });
   res.json({ success: true, message: "Logged out" });
 };
 
+// Add this to the bottom of authController.js
+
 export const getUserDetails = async (req, res) => {
   try {
+    // req.user.id comes from your verifyToken middleware
     const user = await User.findById(req.user.id).select("-password");
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
     res.json({ success: true, user });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
