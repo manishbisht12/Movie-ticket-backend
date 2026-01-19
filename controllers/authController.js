@@ -249,18 +249,14 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// Updated Transporter: Render ke liye extra settings add ki hain
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  // Ye settings timeout errors ko kam karti hain
   connectionTimeout: 10000, 
   socketTimeout: 10000,
-  logger: true,
-  debug: true
 });
 
 export const registerUser = async (req, res) => {
@@ -279,33 +275,23 @@ export const registerUser = async (req, res) => {
 
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
 
-    const mailOptions = {
-      from: `"MovieBooking Support" <${process.env.EMAIL_USER}>`,
-      to: email.toLowerCase().trim(),
-      subject: "Confirm your MovieBooking registration",
-      html: `
-        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #ddd;">
-          <h2 style="color: #ef4444;">Welcome to MovieBooking</h2>
-          <p>Hello ${name}, Your OTP is: <strong>${otp}</strong></p>
-          <p>This code expires in 5 minutes.</p>
-        </div>
-      `,
-    };
-
-    // --- SABSE ZAROORI PART ---
+    // --- STRATEGY: Try Email, but don't stop if it fails ---
+    let emailSent = false;
     try {
-      await transporter.sendMail(mailOptions);
-      console.log("✅ OTP Email sent");
-    } catch (mailError) {
-      console.error("❌ Email failed detail:", mailError);
-      // Agar email fail ho, toh humein pata chalna chahiye ki kyu hua
-      return res.status(500).json({ 
-        success: false, 
-        message: "Email service timeout. Check App Password or Render IP blocking.",
-        error: mailError.message 
+      await transporter.sendMail({
+        from: `"MovieBooking Support" <${process.env.EMAIL_USER}>`,
+        to: email.toLowerCase().trim(),
+        subject: "Confirm your MovieBooking registration",
+        html: `<h2>OTP: ${otp}</h2>`,
       });
+      emailSent = true;
+      console.log("✅ Email sent to:", email);
+    } catch (mailError) {
+      console.error("⚠️ Email blocked by Render. OTP for testing is:", otp);
+      // Hum yahan error return nahi karenge, balki console mein OTP dikhayenge
     }
 
+    // Database mein user hamesha create hoga
     await User.create({
       name,
       email: email.toLowerCase().trim(),
@@ -314,14 +300,19 @@ export const registerUser = async (req, res) => {
       otpExpiresAt: Date.now() + 5 * 60 * 1000,
     });
 
-    res.status(201).json({ success: true, message: "OTP sent to email" });
+    res.status(201).json({ 
+      success: true, 
+      message: emailSent ? "OTP sent to email" : "Registration successful! (Check server logs for OTP)",
+      debugOtp: process.env.NODE_ENV !== "production" ? otp : null // Local pe OTP response mein dikhega
+    });
+
   } catch (error) {
     console.error("❌ Register Global Error:", error.message);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Server Error" });
   }
 };
 
-// ... baaki functions (login, verify, etc.) same rahenge
+// ... loginUser, verifyOtp aur baaki functions aapke wale hi rahenge
 
 // --- LOGIN USER ---
 export const loginUser = async (req, res) => {
