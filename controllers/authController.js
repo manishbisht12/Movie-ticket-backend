@@ -183,49 +183,49 @@
 
 // dotenv.config();
 
-// // Transporter with 'service' to avoid Render connection timeouts
 // const transporter = nodemailer.createTransport({
 //   service: 'gmail',
 //   auth: {
 //     user: process.env.EMAIL_USER,
-//     pass: process.env.EMAIL_PASS, // 16-digit App Password
+//     pass: process.env.EMAIL_PASS,
 //   },
+//   connectionTimeout: 10000, 
+//   socketTimeout: 10000,
 // });
 
-// // --- REGISTER USER ---
 // export const registerUser = async (req, res) => {
 //   try {
 //     const { name, email, phone } = req.body;
 //     console.log(`Registration attempt for: ${email}`);
 
 //     if (!name || !email || !phone) {
-//       return res.status(400).json({ message: "All fields are required" });
+//       return res.status(400).json({ success: false, message: "All fields are required" });
 //     }
 
 //     const existingUser = await User.findOne({ email });
 //     if (existingUser) {
-//       return res.status(400).json({ message: "User already exists" });
+//       return res.status(400).json({ success: false, message: "User already exists" });
 //     }
 
 //     const otp = Math.floor(1000 + Math.random() * 9000).toString();
 
-//     const mailOptions = {
-//       from: `"MovieBooking Support" <${process.env.EMAIL_USER}>`,
-//       to: email.toLowerCase().trim(),
-//       subject: "Confirm your MovieBooking registration",
-//       html: `
-//         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #ddd;">
-//           <h2 style="color: #ef4444;">Welcome to MovieBooking</h2>
-//           <p>Hello ${name}, Your OTP is: <strong>${otp}</strong></p>
-//           <p>This code expires in 5 minutes.</p>
-//         </div>
-//       `,
-//     };
+//     // --- STRATEGY: Try Email, but don't stop if it fails ---
+//     let emailSent = false;
+//     try {
+//       await transporter.sendMail({
+//         from: `"MovieBooking Support" <${process.env.EMAIL_USER}>`,
+//         to: email.toLowerCase().trim(),
+//         subject: "Confirm your MovieBooking registration",
+//         html: `<h2>OTP: ${otp}</h2>`,
+//       });
+//       emailSent = true;
+//       console.log("✅ Email sent to:", email);
+//     } catch (mailError) {
+//       console.error("⚠️ Email blocked by Render. OTP for testing is:", otp);
+//       // Hum yahan error return nahi karenge, balki console mein OTP dikhayenge
+//     }
 
-//     // Send Mail first
-//     await transporter.sendMail(mailOptions);
-//     console.log("✅ OTP Email sent");
-
+//     // Database mein user hamesha create hoga
 //     await User.create({
 //       name,
 //       email: email.toLowerCase().trim(),
@@ -234,12 +234,112 @@
 //       otpExpiresAt: Date.now() + 5 * 60 * 1000,
 //     });
 
-//     res.status(201).json({ success: true, message: "OTP sent to email" });
+//     res.status(201).json({ 
+//       success: true, 
+//       message: emailSent ? "OTP sent to email" : "Registration successful! (Check server logs for OTP)",
+//       debugOtp: process.env.NODE_ENV !== "production" ? otp : null // Local pe OTP response mein dikhega
+//     });
+
 //   } catch (error) {
-//     console.error("❌ Register Error:", error.message);
-//     res.status(500).json({ success: false, message: "Email service failed", error: error.message });
+//     console.error("❌ Register Global Error:", error.message);
+//     res.status(500).json({ success: false, message: "Server Error" });
 //   }
 // };
+
+// // ... loginUser, verifyOtp aur baaki functions aapke wale hi rahenge
+
+// // --- LOGIN USER ---
+// export const loginUser = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+//     const user = await User.findOne({ email });
+
+//     if (!user || !(await bcrypt.compare(password, user.password))) {
+//       return res.status(400).json({ message: "Invalid credentials" });
+//     }
+
+//     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || "secret", { expiresIn: "7d" });
+
+//     // IMPORTANT: Cookie settings for Vercel/Render
+//     res.cookie("token", token, {
+//       httpOnly: true,
+//       secure: true,      // Must be true for HTTPS (Vercel)
+//       sameSite: "none",  // Must be 'none' for cross-domain cookies
+//       maxAge: 7 * 24 * 60 * 60 * 1000,
+//       path: "/"
+//     });
+
+//     res.json({ success: true, user: { name: user.name, email: user.email } });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
+// // --- VERIFY OTP ---
+// export const verifyOtp = async (req, res) => {
+//   try {
+//     const { phone, otp } = req.body;
+//     const user = await User.findOne({ phone });
+
+//     if (!user || user.otp !== otp || user.otpExpiresAt < Date.now()) {
+//       return res.status(400).json({ message: "Invalid or expired OTP" });
+//     }
+
+//     user.isVerified = true;
+//     user.otp = null;
+//     user.otpExpiresAt = null;
+//     await user.save();
+
+//     res.json({ success: true, message: "Verified" });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
+// // --- SET PASSWORD ---
+// export const setPassword = async (req, res) => {
+//   try {
+//     const { phone, password } = req.body;
+//     const user = await User.findOne({ phone });
+
+//     if (!user || !user.isVerified) {
+//       return res.status(400).json({ message: "Verification required" });
+//     }
+
+//     user.password = await bcrypt.hash(password, 10);
+//     await user.save();
+
+//     res.json({ success: true, message: "Password set successfully" });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
+// // --- LOGOUT ---
+// export const logoutUser = async (req, res) => {
+//   res.cookie("token", "", { 
+//     httpOnly: true, 
+//     secure: true, 
+//     sameSite: "none", 
+//     expires: new Date(0) 
+//   });
+//   res.json({ success: true, message: "Logged out" });
+// };
+
+// // --- GET DETAILS ---
+// export const getUserDetails = async (req, res) => {
+//   try {
+//     const user = await User.findById(req.user.id).select("-password");
+//     if (!user) return res.status(404).json({ success: false, message: "User not found" });
+//     res.json({ success: true, user });
+//   } catch (error) {
+//     res.status(500).json({ success: false, message: error.message });
+//   }
+// };
+
+
+
+
 
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
@@ -249,20 +349,27 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// Gmail ke liye Port 465 aur SSL sabse reliable hai Render par
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true, // Port 465 ke liye true hona chahiye
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  connectionTimeout: 10000, 
-  socketTimeout: 10000,
+  tls: {
+    // Ye line Google/Render ke IP mismatch ko ignore karti hai
+    rejectUnauthorized: false 
+  },
+  connectionTimeout: 15000, // Timeout thoda badha diya hai
 });
 
+// --- REGISTER USER ---
 export const registerUser = async (req, res) => {
   try {
     const { name, email, phone } = req.body;
-    console.log(`Registration attempt for: ${email}`);
+    console.log(`Attempting to send OTP to: ${email}`);
 
     if (!name || !email || !phone) {
       return res.status(400).json({ success: false, message: "All fields are required" });
@@ -275,23 +382,31 @@ export const registerUser = async (req, res) => {
 
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
 
-    // --- STRATEGY: Try Email, but don't stop if it fails ---
-    let emailSent = false;
+    const mailOptions = {
+      from: `"MovieBooking Support" <${process.env.EMAIL_USER}>`,
+      to: email.toLowerCase().trim(),
+      subject: "Your MovieBooking OTP",
+      html: `<div style="font-family: Arial; padding: 20px; border: 1px solid #eee;">
+               <h2 style="color: #e50914;">Verification Code</h2>
+               <p>Hello ${name}, your OTP is: <strong style="font-size: 20px;">${otp}</strong></p>
+               <p>This code is valid for 5 minutes.</p>
+             </div>`,
+    };
+
+    // Yahan hum strict check rakhenge
     try {
-      await transporter.sendMail({
-        from: `"MovieBooking Support" <${process.env.EMAIL_USER}>`,
-        to: email.toLowerCase().trim(),
-        subject: "Confirm your MovieBooking registration",
-        html: `<h2>OTP: ${otp}</h2>`,
-      });
-      emailSent = true;
-      console.log("✅ Email sent to:", email);
+      await transporter.sendMail(mailOptions);
+      console.log("✅ Email actually sent to Inbox!");
     } catch (mailError) {
-      console.error("⚠️ Email blocked by Render. OTP for testing is:", otp);
-      // Hum yahan error return nahi karenge, balki console mein OTP dikhayenge
+      console.error("❌ Email failed:", mailError.message);
+      // Agar aapko MAIL HAR HAAL MEIN CHAHIYE, toh yahan error return karna hoga
+      return res.status(500).json({ 
+        success: false, 
+        message: "Email delivery failed. Google is blocking the server.",
+        error: mailError.message 
+      });
     }
 
-    // Database mein user hamesha create hoga
     await User.create({
       name,
       email: email.toLowerCase().trim(),
@@ -300,19 +415,13 @@ export const registerUser = async (req, res) => {
       otpExpiresAt: Date.now() + 5 * 60 * 1000,
     });
 
-    res.status(201).json({ 
-      success: true, 
-      message: emailSent ? "OTP sent to email" : "Registration successful! (Check server logs for OTP)",
-      debugOtp: process.env.NODE_ENV !== "production" ? otp : null // Local pe OTP response mein dikhega
-    });
+    res.status(201).json({ success: true, message: "OTP sent to your email inbox!" });
 
   } catch (error) {
     console.error("❌ Register Global Error:", error.message);
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
-
-// ... loginUser, verifyOtp aur baaki functions aapke wale hi rahenge
 
 // --- LOGIN USER ---
 export const loginUser = async (req, res) => {
@@ -321,23 +430,22 @@ export const loginUser = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ success: false, message: "Invalid credentials" });
     }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || "secret", { expiresIn: "7d" });
 
-    // IMPORTANT: Cookie settings for Vercel/Render
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,      // Must be true for HTTPS (Vercel)
-      sameSite: "none",  // Must be 'none' for cross-domain cookies
+      secure: true,      // HTTPS mandatory for Vercel
+      sameSite: "none",  // Cross-domain mandatory
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: "/"
     });
 
     res.json({ success: true, user: { name: user.name, email: user.email } });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -348,7 +456,7 @@ export const verifyOtp = async (req, res) => {
     const user = await User.findOne({ phone });
 
     if (!user || user.otp !== otp || user.otpExpiresAt < Date.now()) {
-      return res.status(400).json({ message: "Invalid or expired OTP" });
+      return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
     }
 
     user.isVerified = true;
@@ -356,9 +464,9 @@ export const verifyOtp = async (req, res) => {
     user.otpExpiresAt = null;
     await user.save();
 
-    res.json({ success: true, message: "Verified" });
+    res.json({ success: true, message: "Verified successfully" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -369,7 +477,7 @@ export const setPassword = async (req, res) => {
     const user = await User.findOne({ phone });
 
     if (!user || !user.isVerified) {
-      return res.status(400).json({ message: "Verification required" });
+      return res.status(400).json({ success: false, message: "Verification required" });
     }
 
     user.password = await bcrypt.hash(password, 10);
@@ -377,7 +485,7 @@ export const setPassword = async (req, res) => {
 
     res.json({ success: true, message: "Password set successfully" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
