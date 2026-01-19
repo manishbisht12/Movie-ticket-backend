@@ -339,8 +339,6 @@
 
 
 
-
-
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -349,27 +347,37 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// Gmail ke liye Port 465 aur SSL sabse reliable hai Render par
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true, // Port 465 ke liye true hona chahiye
+  service: "gmail", // Render par 'service' use karna zyada stable hai
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
   tls: {
-    // Ye line Google/Render ke IP mismatch ko ignore karti hai
     rejectUnauthorized: false 
-  },
-  connectionTimeout: 15000, // Timeout thoda badha diya hai
+  }
 });
+
+// --- EMAIL PROMISE WRAPPER ---
+const sendEmail = (mailOptions) => {
+  return new Promise((resolve, reject) => {
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("❌ Nodemailer Callback Error:", error);
+        reject(error);
+      } else {
+        console.log("✅ Email sent successfully:", info.response);
+        resolve(info);
+      }
+    });
+  });
+};
 
 // --- REGISTER USER ---
 export const registerUser = async (req, res) => {
   try {
     const { name, email, phone } = req.body;
-    console.log(`Attempting to send OTP to: ${email}`);
+    console.log(`Attempting registration for: ${email}`);
 
     if (!name || !email || !phone) {
       return res.status(400).json({ success: false, message: "All fields are required" });
@@ -386,27 +394,29 @@ export const registerUser = async (req, res) => {
       from: `"MovieBooking Support" <${process.env.EMAIL_USER}>`,
       to: email.toLowerCase().trim(),
       subject: "Your MovieBooking OTP",
-      html: `<div style="font-family: Arial; padding: 20px; border: 1px solid #eee;">
-               <h2 style="color: #e50914;">Verification Code</h2>
-               <p>Hello ${name}, your OTP is: <strong style="font-size: 20px;">${otp}</strong></p>
-               <p>This code is valid for 5 minutes.</p>
-             </div>`,
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee;">
+          <h2 style="color: #e50914;">Verification Code</h2>
+          <p>Hello <b>${name}</b>,</p>
+          <p>Your OTP for registration is: <span style="font-size: 20px; font-weight: bold; color: #333;">${otp}</span></p>
+          <p>This code is valid for 5 minutes.</p>
+        </div>
+      `,
     };
 
-    // Yahan hum strict check rakhenge
+    // --- PROMISE EXECUTION ---
     try {
-      await transporter.sendMail(mailOptions);
-      console.log("✅ Email actually sent to Inbox!");
+      await sendEmail(mailOptions);
     } catch (mailError) {
-      console.error("❌ Email failed:", mailError.message);
-      // Agar aapko MAIL HAR HAAL MEIN CHAHIYE, toh yahan error return karna hoga
+      // Agar email fail ho toh hum user ko error dikhayenge aur DB mein save nahi karenge
       return res.status(500).json({ 
         success: false, 
-        message: "Email delivery failed. Google is blocking the server.",
+        message: "Email delivery failed. Please check your email or try again later.",
         error: mailError.message 
       });
     }
 
+    // User DB mein tabhi banega jab email chala jayega
     await User.create({
       name,
       email: email.toLowerCase().trim(),
@@ -419,7 +429,7 @@ export const registerUser = async (req, res) => {
 
   } catch (error) {
     console.error("❌ Register Global Error:", error.message);
-    res.status(500).json({ success: false, message: "Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -437,8 +447,8 @@ export const loginUser = async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,      // HTTPS mandatory for Vercel
-      sameSite: "none",  // Cross-domain mandatory
+      secure: true,
+      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: "/"
     });
