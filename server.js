@@ -17,10 +17,19 @@ const app = express();
 
 
 
+// app.use(cors({
+//   origin: "*", 
+//   methods: ["GET", "POST", "PUT", "DELETE"],
+//   credentials: true, 
+// }));
+
+
 app.use(cors({
-  origin: "*", 
+  // Aapne specific frontend URL dena hoga
+  origin: "https://movie-ticket-topaz.vercel.app", 
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true, 
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 app.use("/uploads", express.static("uploads"));
