@@ -26,12 +26,37 @@ const app = express();
 // }));
 
 
+// app.use(cors({
+//   origin: "https://movie-ticket-topaz.vercel.app", 
+//   methods: ["GET", "POST", "PUT", "DELETE"],
+//   credentials: true, 
+//   allowedHeaders: ["Content-Type", "Authorization"]
+// }));
+
+
+const allowedOrigins = [
+  "https://movie-ticket-topaz.vercel.app"
+];
+
 app.use(cors({
-  origin: "https://movie-ticket-topaz.vercel.app", 
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true, 
+  origin: function (origin, callback) {
+    // allow requests with no origin (like Postman)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+// 🔥 VERY IMPORTANT (Preflight fix)
+app.options("*", cors());
+
 
 app.use("/uploads", express.static("uploads"));
 
