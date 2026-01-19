@@ -9,8 +9,8 @@ dotenv.config();
 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  secure: true, 
+  port: process.env.EMAIL_PORT || 587, // Default to 587 for Gmail
+  secure: false, // false for 587, true for 465
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
@@ -50,11 +50,15 @@ export const registerUser = async (req, res) => {
       `,
     };
 
+    await transporter.verify(); // Check SMTP connection
+    console.log("SMTP server is ready");
+
     await transporter.sendMail(mailOptions);
+    console.log("Email sent successfully");
 
     await User.create({
       name,
-      email,
+      email: email.toLowerCase().trim(), // Uniform email storage
       phone,
       otp,
       otpExpiresAt: Date.now() + 5 * 60 * 1000,
@@ -62,7 +66,8 @@ export const registerUser = async (req, res) => {
 
     res.status(201).json({ success: true, message: "OTP sent to email" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Registration Error Details:", error); // Check Render logs
+    res.status(500).json({ message: "Email service failed or DB error", error: error.message });
   }
 };
 
@@ -140,8 +145,8 @@ export const loginUser = async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false, // Development ke liye false hi rakhein
-      sameSite: "lax", 
+      secure: true, // Live par true for HTTPS
+      sameSite: "none", // Cross-site for Vercel frontend
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: "/" // Ensure cookie is available everywhere
     });
