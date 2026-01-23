@@ -344,37 +344,97 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import { sendEmail } from "../utils/sendEmail.js";
 
 dotenv.config();
 
-const transporter = nodemailer.createTransport({
-  service: "gmail", // Render par 'service' use karna zyada stable hai
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+// const transporter = nodemailer.createTransport({
+//   service: "gmail", // Render par 'service' use karna zyada stable hai
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_PASS,
+//   },
+// });
 
 // --- EMAIL PROMISE WRAPPER ---
-const sendEmail = (mailOptions) => {
-  return new Promise((resolve, reject) => {
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error("❌ Nodemailer Callback Error:", error);
-        reject(error);
-      } else {
-        console.log("✅ Email sent successfully:", info.response);
-        resolve(info);
-      }
-    });
-  });
-};
+// const sendEmail = (mailOptions) => {
+//   return new Promise((resolve, reject) => {
+//     transporter.sendMail(mailOptions, (error, info) => {
+//       if (error) {
+//         console.error("❌ Nodemailer Callback Error:", error);
+//         reject(error);
+//       } else {
+//         console.log("✅ Email sent successfully:", info.response);
+//         resolve(info);
+//       }
+//     });
+//   });
+// };
+
+// --- REGISTER USER ---
+// export const registerUser = async (req, res) => {
+//   try {
+//     const { name, email, phone } = req.body;
+//     console.log(`Attempting registration for: ${email}`);
+
+//     if (!name || !email || !phone) {
+//       return res.status(400).json({ success: false, message: "All fields are required" });
+//     }
+
+//     const existingUser = await User.findOne({ email });
+//     if (existingUser) {
+//       return res.status(400).json({ success: false, message: "User already exists" });
+//     }
+
+//     const otp = Math.floor(1000 + Math.random() * 9000).toString();
+
+//     const mailOptions = {
+//       from: `"MovieBooking Support" <${process.env.EMAIL_USER}>`,
+//       to: email.toLowerCase().trim(),
+//       subject: "Your MovieBooking OTP",
+//       html: `
+//         <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee;">
+//           <h2 style="color: #e50914;">Verification Code</h2>
+//           <p>Hello <b>${name}</b>,</p>
+//           <p>Your OTP for registration is: <span style="font-size: 20px; font-weight: bold; color: #333;">${otp}</span></p>
+//           <p>This code is valid for 5 minutes.</p>
+//         </div>
+//       `,
+//     };
+
+//     // --- PROMISE EXECUTION ---
+//     try {
+//       await sendEmail(mailOptions);
+//     } catch (mailError) {
+//       // Agar email fail ho toh hum user ko error dikhayenge aur DB mein save nahi karenge
+//       return res.status(500).json({ 
+//         success: false, 
+//         message: "Email delivery failed. Please check your email or try again later.",
+//         error: mailError.message 
+//       });
+//     }
+
+//     // User DB mein tabhi banega jab email chala jayega
+//     await User.create({
+//       name,
+//       email: email.toLowerCase().trim(),
+//       phone,
+//       otp,
+//       otpExpiresAt: Date.now() + 5 * 60 * 1000,
+//     });
+
+//     res.status(201).json({ success: true, message: "OTP sent to your email inbox!" });
+
+//   } catch (error) {
+//     console.error("❌ Register Global Error:", error.message);
+//     res.status(500).json({ success: false, message: "Internal Server Error" });
+//   }
+// };
 
 // --- REGISTER USER ---
 export const registerUser = async (req, res) => {
   try {
     const { name, email, phone } = req.body;
-    console.log(`Attempting registration for: ${email}`);
 
     if (!name || !email || !phone) {
       return res.status(400).json({ success: false, message: "All fields are required" });
@@ -387,33 +447,21 @@ export const registerUser = async (req, res) => {
 
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
 
-    const mailOptions = {
-      from: `"MovieBooking Support" <${process.env.EMAIL_USER}>`,
+    // ✅ RESEND EMAIL
+    await sendEmail({
       to: email.toLowerCase().trim(),
       subject: "Your MovieBooking OTP",
       html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee;">
-          <h2 style="color: #e50914;">Verification Code</h2>
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+          <h2 style="color:#e50914;">Verification Code</h2>
           <p>Hello <b>${name}</b>,</p>
-          <p>Your OTP for registration is: <span style="font-size: 20px; font-weight: bold; color: #333;">${otp}</span></p>
-          <p>This code is valid for 5 minutes.</p>
+          <p>Your OTP is:</p>
+          <h1>${otp}</h1>
+          <p>Valid for 5 minutes.</p>
         </div>
       `,
-    };
+    });
 
-    // --- PROMISE EXECUTION ---
-    try {
-      await sendEmail(mailOptions);
-    } catch (mailError) {
-      // Agar email fail ho toh hum user ko error dikhayenge aur DB mein save nahi karenge
-      return res.status(500).json({ 
-        success: false, 
-        message: "Email delivery failed. Please check your email or try again later.",
-        error: mailError.message 
-      });
-    }
-
-    // User DB mein tabhi banega jab email chala jayega
     await User.create({
       name,
       email: email.toLowerCase().trim(),
@@ -422,13 +470,17 @@ export const registerUser = async (req, res) => {
       otpExpiresAt: Date.now() + 5 * 60 * 1000,
     });
 
-    res.status(201).json({ success: true, message: "OTP sent to your email inbox!" });
+    res.status(201).json({
+      success: true,
+      message: "OTP sent to your email inbox!",
+    });
 
   } catch (error) {
-    console.error("❌ Register Global Error:", error.message);
+    console.error("Register Error:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
 
 // --- LOGIN USER ---
 export const loginUser = async (req, res) => {
