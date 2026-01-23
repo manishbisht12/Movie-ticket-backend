@@ -35,7 +35,8 @@ const app = express();
 
 
 const allowedOrigins = [
-  "https://movie-ticket-topaz.vercel.app"
+  "https://movie-ticket-topaz.vercel.app",
+  "http://localhost:3000"
 ];
 
 app.use(cors({
@@ -55,7 +56,7 @@ app.use(cors({
 }));
 
 // 🔥 VERY IMPORTANT (Preflight fix)
-app.options("*", cors());
+// app.options("*", cors());
 
 
 app.use("/uploads", express.static("uploads"));
