@@ -1,49 +1,94 @@
+// import mongoose from "mongoose";
+
+// const userSchema = new mongoose.Schema(
+//   {
+//     name: {
+//       type: String,
+//       required: true,
+//       trim: true,
+//     },
+
+//     email: {
+//       type: String,
+//       required: true,
+//       unique: true,
+//       lowercase: true,
+//       trim: true,
+//     },
+
+//     phone: {
+//       type: String,
+//       required: true,
+//       unique: true,
+//     },
+
+//     password: {
+//       type: String,
+//       required: false, 
+//     },
+
+//     otp: {
+//       type: String,
+//       required: false,
+//     },
+
+//     isVerified: {
+//       type: Boolean,
+//       default: false,
+//     },
+
+//     otpExpiresAt: {
+//       type: Date,
+//       required: false, 
+//     },
+//   },
+//   {
+//     timestamps: true, 
+//   }
+// );
+
+// export default mongoose.model("User", userSchema);
+
+
+//firebase
+
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-      trim: true,
-    },
-
     phone: {
       type: String,
       required: true,
       unique: true,
+      trim: true,
     },
 
-    password: {
+    firebaseUid: {
       type: String,
-      required: false, 
+      required: true,
+      unique: true,
     },
 
-    otp: {
+    name: {
       type: String,
-      required: false,
+      trim: true,
+      default: "",
+    },
+
+    email: {
+      type: String,
+      lowercase: true,
+      trim: true,
+      default: "",
     },
 
     isVerified: {
       type: Boolean,
-      default: false,
-    },
-
-    otpExpiresAt: {
-      type: Date,
-      required: false, 
+      default: true, // Firebase already verified
     },
   },
   {
-    timestamps: true, 
+    timestamps: true,
   }
 );
 

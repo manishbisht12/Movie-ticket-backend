@@ -1,109 +1,132 @@
-// import User from "../models/User.js";
-// import bcrypt from "bcrypt";
-// import jwt from "jsonwebtoken";
-// import nodemailer from "nodemailer";
-// import dotenv from "dotenv";
+// // import User from "../models/User.js";
+// // import bcrypt from "bcrypt";
+// // import jwt from "jsonwebtoken";
+// // import nodemailer from "nodemailer";
+// // import dotenv from "dotenv";
 
-// dotenv.config(); 
+// // dotenv.config(); 
 
 
-// const transporter = nodemailer.createTransport({
-//   host: process.env.EMAIL_HOST,
-//   port: process.env.EMAIL_PORT,
-//   secure: true, 
-//   auth: {
-//     user: process.env.EMAIL_USER,
-//     pass: process.env.EMAIL_PASS,
-//   },
-// });
+// // const transporter = nodemailer.createTransport({
+// //   host: process.env.EMAIL_HOST,
+// //   port: process.env.EMAIL_PORT,
+// //   secure: true, 
+// //   auth: {
+// //     user: process.env.EMAIL_USER,
+// //     pass: process.env.EMAIL_PASS,
+// //   },
+// // });
 
-// export const registerUser = async (req, res) => {
-//   try {
-//     const { name, email, phone } = req.body;
-//     console.log("Attempting to send OTP to:", email);
+// // export const registerUser = async (req, res) => {
+// //   try {
+// //     const { name, email, phone } = req.body;
+// //     console.log("Attempting to send OTP to:", email);
 
-//     if (!name || !email || !phone) {
-//       return res.status(400).json({ message: "All fields are required" });
-//     }
+// //     if (!name || !email || !phone) {
+// //       return res.status(400).json({ message: "All fields are required" });
+// //     }
   
-//     const existingUser = await User.findOne({ email });
-//     if (existingUser) {
-//       return res.status(400).json({ message: "User already exists" });
-//     }
+// //     const existingUser = await User.findOne({ email });
+// //     if (existingUser) {
+// //       return res.status(400).json({ message: "User already exists" });
+// //     }
 
-//     const otp = Math.floor(1000 + Math.random() * 9000).toString();
+// //     const otp = Math.floor(1000 + Math.random() * 9000).toString();
 
-//     // Send Email
-//     const mailOptions = {
-//       from: `"MovieBooking Support" <${process.env.EMAIL_USER}>`, 
-//       to: email.toLowerCase().trim(),
-//        subject: "Confirm your MovieBooking registration",
-//       text: `Hello ${name}, your MovieBooking verification code is ${otp}. It will expire in 5 minutes.`, 
-//       html: `
-//         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #ddd;">
-//           <h2 style="color: #ef4444;">Welcome to MovieBooking</h2>
-//           <p>Hello ${name},</p>
-//           <p>Your OTP for account verification is:</p>
-//           <h1 style="letter-spacing: 5px; color: #111;">${otp}</h1>
-//           <p>This code expires in 5 minutes.</p>
-//         </div>
-//       `,
-//     };
+// //     // Send Email
+// //     const mailOptions = {
+// //       from: `"MovieBooking Support" <${process.env.EMAIL_USER}>`, 
+// //       to: email.toLowerCase().trim(),
+// //        subject: "Confirm your MovieBooking registration",
+// //       text: `Hello ${name}, your MovieBooking verification code is ${otp}. It will expire in 5 minutes.`, 
+// //       html: `
+// //         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #ddd;">
+// //           <h2 style="color: #ef4444;">Welcome to MovieBooking</h2>
+// //           <p>Hello ${name},</p>
+// //           <p>Your OTP for account verification is:</p>
+// //           <h1 style="letter-spacing: 5px; color: #111;">${otp}</h1>
+// //           <p>This code expires in 5 minutes.</p>
+// //         </div>
+// //       `,
+// //     };
 
-//     await transporter.sendMail(mailOptions);
+// //     await transporter.sendMail(mailOptions);
 
-//     await User.create({
-//       name,
-//       email,
-//       phone,
-//       otp,
-//       otpExpiresAt: Date.now() + 5 * 60 * 1000,
-//     });
+// //     await User.create({
+// //       name,
+// //       email,
+// //       phone,
+// //       otp,
+// //       otpExpiresAt: Date.now() + 5 * 60 * 1000,
+// //     });
 
-//     res.status(201).json({ success: true, message: "OTP sent to email" });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
+// //     res.status(201).json({ success: true, message: "OTP sent to email" });
+// //   } catch (error) {
+// //     res.status(500).json({ message: error.message });
+// //   }
+// // };
 
-// export const verifyOtp = async (req, res) => {
-//   try {
-//     const { phone, otp } = req.body;
-//     const user = await User.findOne({ phone });
+// // export const verifyOtp = async (req, res) => {
+// //   try {
+// //     const { phone, otp } = req.body;
+// //     const user = await User.findOne({ phone });
 
-//     if (!user || user.otp !== otp || user.otpExpiresAt < Date.now()) {
-//       return res.status(400).json({ message: "Invalid or expired OTP" });
-//     }
+// //     if (!user || user.otp !== otp || user.otpExpiresAt < Date.now()) {
+// //       return res.status(400).json({ message: "Invalid or expired OTP" });
+// //     }
 
-//     user.isVerified = true;
-//     user.otp = null;
-//     user.otpExpiresAt = null;
-//     await user.save();
+// //     user.isVerified = true;
+// //     user.otp = null;
+// //     user.otpExpiresAt = null;
+// //     await user.save();
 
-//     res.json({ success: true, message: "Verified" });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
+// //     res.json({ success: true, message: "Verified" });
+// //   } catch (error) {
+// //     res.status(500).json({ message: error.message });
+// //   }
+// // };
 
-// export const setPassword = async (req, res) => {
-//   try {
-//     const { phone, password } = req.body;
-//     const user = await User.findOne({ phone });
+// // export const setPassword = async (req, res) => {
+// //   try {
+// //     const { phone, password } = req.body;
+// //     const user = await User.findOne({ phone });
 
-//     if (!user || !user.isVerified) {
-//       return res.status(400).json({ message: "Verification required" });
-//     }
+// //     if (!user || !user.isVerified) {
+// //       return res.status(400).json({ message: "Verification required" });
+// //     }
 
-//     user.password = await bcrypt.hash(password, 10);
-//     await user.save();
+// //     user.password = await bcrypt.hash(password, 10);
+// //     await user.save();
 
-//     res.json({ success: true, message: "Password updated" });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
+// //     res.json({ success: true, message: "Password updated" });
+// //   } catch (error) {
+// //     res.status(500).json({ message: error.message });
+// //   }
+// // };
 
+// // // export const loginUser = async (req, res) => {
+// // //   try {
+// // //     const { email, password } = req.body;
+// // //     const user = await User.findOne({ email });
+
+// // //     if (!user || !(await bcrypt.compare(password, user.password))) {
+// // //       return res.status(400).json({ message: "Invalid credentials" });
+// // //     }
+
+// // //     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || "secret", { expiresIn: "7d" });
+
+// // //     res.cookie("token", token, {
+// // //       httpOnly: true,
+// // //       secure: process.env.NODE_ENV === "production",
+// // //       sameSite: "lax",
+// // //       maxAge: 7 * 24 * 60 * 60 * 1000,
+// // //     });
+
+// // //     res.json({ success: true, user: { name: user.name, email: user.email } });
+// // //   } catch (error) {
+// // //     res.status(500).json({ message: error.message });
+// // //   }
+// // // };
 // // export const loginUser = async (req, res) => {
 // //   try {
 // //     const { email, password } = req.body;
@@ -117,9 +140,10 @@
 
 // //     res.cookie("token", token, {
 // //       httpOnly: true,
-// //       secure: process.env.NODE_ENV === "production",
-// //       sameSite: "lax",
+// //       secure: false, // Development ke liye false hi rakhein
+// //       sameSite: "lax", 
 // //       maxAge: 7 * 24 * 60 * 60 * 1000,
+// //       path: "/" // Ensure cookie is available everywhere
 // //     });
 
 // //     res.json({ success: true, user: { name: user.name, email: user.email } });
@@ -127,52 +151,192 @@
 // //     res.status(500).json({ message: error.message });
 // //   }
 // // };
-// export const loginUser = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-//     const user = await User.findOne({ email });
 
-//     if (!user || !(await bcrypt.compare(password, user.password))) {
-//       return res.status(400).json({ message: "Invalid credentials" });
-//     }
+// // export const logoutUser = async (req, res) => {
+// //   res.cookie("token", "", { httpOnly: true, expires: new Date(0) });
+// //   res.json({ success: true, message: "Logged out" });
+// // };
 
-//     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || "secret", { expiresIn: "7d" });
+// // // Add this to the bottom of authController.js
 
-//     res.cookie("token", token, {
-//       httpOnly: true,
-//       secure: false, // Development ke liye false hi rakhein
-//       sameSite: "lax", 
-//       maxAge: 7 * 24 * 60 * 60 * 1000,
-//       path: "/" // Ensure cookie is available everywhere
-//     });
-
-//     res.json({ success: true, user: { name: user.name, email: user.email } });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
-// export const logoutUser = async (req, res) => {
-//   res.cookie("token", "", { httpOnly: true, expires: new Date(0) });
-//   res.json({ success: true, message: "Logged out" });
-// };
-
-// // Add this to the bottom of authController.js
-
-// export const getUserDetails = async (req, res) => {
-//   try {
-//     // req.user.id comes from your verifyToken middleware
-//     const user = await User.findById(req.user.id).select("-password");
+// // export const getUserDetails = async (req, res) => {
+// //   try {
+// //     // req.user.id comes from your verifyToken middleware
+// //     const user = await User.findById(req.user.id).select("-password");
     
-//     if (!user) {
-//       return res.status(404).json({ success: false, message: "User not found" });
-//     }
+// //     if (!user) {
+// //       return res.status(404).json({ success: false, message: "User not found" });
+// //     }
 
-//     res.json({ success: true, user });
-//   } catch (error) {
-//     res.status(500).json({ success: false, message: error.message });
-//   }
-// };
+// //     res.json({ success: true, user });
+// //   } catch (error) {
+// //     res.status(500).json({ success: false, message: error.message });
+// //   }
+// // };
+
+
+// // import User from "../models/User.js";
+// // import bcrypt from "bcrypt";
+// // import jwt from "jsonwebtoken";
+// // import nodemailer from "nodemailer";
+// // import dotenv from "dotenv";
+
+// // dotenv.config();
+
+// // const transporter = nodemailer.createTransport({
+// //   service: 'gmail',
+// //   auth: {
+// //     user: process.env.EMAIL_USER,
+// //     pass: process.env.EMAIL_PASS,
+// //   },
+// //   connectionTimeout: 10000, 
+// //   socketTimeout: 10000,
+// // });
+
+// // export const registerUser = async (req, res) => {
+// //   try {
+// //     const { name, email, phone } = req.body;
+// //     console.log(`Registration attempt for: ${email}`);
+
+// //     if (!name || !email || !phone) {
+// //       return res.status(400).json({ success: false, message: "All fields are required" });
+// //     }
+
+// //     const existingUser = await User.findOne({ email });
+// //     if (existingUser) {
+// //       return res.status(400).json({ success: false, message: "User already exists" });
+// //     }
+
+// //     const otp = Math.floor(1000 + Math.random() * 9000).toString();
+
+// //     // --- STRATEGY: Try Email, but don't stop if it fails ---
+// //     let emailSent = false;
+// //     try {
+// //       await transporter.sendMail({
+// //         from: `"MovieBooking Support" <${process.env.EMAIL_USER}>`,
+// //         to: email.toLowerCase().trim(),
+// //         subject: "Confirm your MovieBooking registration",
+// //         html: `<h2>OTP: ${otp}</h2>`,
+// //       });
+// //       emailSent = true;
+// //       console.log("✅ Email sent to:", email);
+// //     } catch (mailError) {
+// //       console.error("⚠️ Email blocked by Render. OTP for testing is:", otp);
+// //       // Hum yahan error return nahi karenge, balki console mein OTP dikhayenge
+// //     }
+
+// //     // Database mein user hamesha create hoga
+// //     await User.create({
+// //       name,
+// //       email: email.toLowerCase().trim(),
+// //       phone,
+// //       otp,
+// //       otpExpiresAt: Date.now() + 5 * 60 * 1000,
+// //     });
+
+// //     res.status(201).json({ 
+// //       success: true, 
+// //       message: emailSent ? "OTP sent to email" : "Registration successful! (Check server logs for OTP)",
+// //       debugOtp: process.env.NODE_ENV !== "production" ? otp : null // Local pe OTP response mein dikhega
+// //     });
+
+// //   } catch (error) {
+// //     console.error("❌ Register Global Error:", error.message);
+// //     res.status(500).json({ success: false, message: "Server Error" });
+// //   }
+// // };
+
+// // // ... loginUser, verifyOtp aur baaki functions aapke wale hi rahenge
+
+// // // --- LOGIN USER ---
+// // export const loginUser = async (req, res) => {
+// //   try {
+// //     const { email, password } = req.body;
+// //     const user = await User.findOne({ email });
+
+// //     if (!user || !(await bcrypt.compare(password, user.password))) {
+// //       return res.status(400).json({ message: "Invalid credentials" });
+// //     }
+
+// //     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || "secret", { expiresIn: "7d" });
+
+// //     // IMPORTANT: Cookie settings for Vercel/Render
+// //     res.cookie("token", token, {
+// //       httpOnly: true,
+// //       secure: true,      // Must be true for HTTPS (Vercel)
+// //       sameSite: "none",  // Must be 'none' for cross-domain cookies
+// //       maxAge: 7 * 24 * 60 * 60 * 1000,
+// //       path: "/"
+// //     });
+
+// //     res.json({ success: true, user: { name: user.name, email: user.email } });
+// //   } catch (error) {
+// //     res.status(500).json({ message: error.message });
+// //   }
+// // };
+
+// // // --- VERIFY OTP ---
+// // export const verifyOtp = async (req, res) => {
+// //   try {
+// //     const { phone, otp } = req.body;
+// //     const user = await User.findOne({ phone });
+
+// //     if (!user || user.otp !== otp || user.otpExpiresAt < Date.now()) {
+// //       return res.status(400).json({ message: "Invalid or expired OTP" });
+// //     }
+
+// //     user.isVerified = true;
+// //     user.otp = null;
+// //     user.otpExpiresAt = null;
+// //     await user.save();
+
+// //     res.json({ success: true, message: "Verified" });
+// //   } catch (error) {
+// //     res.status(500).json({ message: error.message });
+// //   }
+// // };
+
+// // // --- SET PASSWORD ---
+// // export const setPassword = async (req, res) => {
+// //   try {
+// //     const { phone, password } = req.body;
+// //     const user = await User.findOne({ phone });
+
+// //     if (!user || !user.isVerified) {
+// //       return res.status(400).json({ message: "Verification required" });
+// //     }
+
+// //     user.password = await bcrypt.hash(password, 10);
+// //     await user.save();
+
+// //     res.json({ success: true, message: "Password set successfully" });
+// //   } catch (error) {
+// //     res.status(500).json({ message: error.message });
+// //   }
+// // };
+
+// // // --- LOGOUT ---
+// // export const logoutUser = async (req, res) => {
+// //   res.cookie("token", "", { 
+// //     httpOnly: true, 
+// //     secure: true, 
+// //     sameSite: "none", 
+// //     expires: new Date(0) 
+// //   });
+// //   res.json({ success: true, message: "Logged out" });
+// // };
+
+// // // --- GET DETAILS ---
+// // export const getUserDetails = async (req, res) => {
+// //   try {
+// //     const user = await User.findById(req.user.id).select("-password");
+// //     if (!user) return res.status(404).json({ success: false, message: "User not found" });
+// //     res.json({ success: true, user });
+// //   } catch (error) {
+// //     res.status(500).json({ success: false, message: error.message });
+// //   }
+// // };
+
 
 
 // import User from "../models/User.js";
@@ -181,172 +345,8 @@
 // import nodemailer from "nodemailer";
 // import dotenv from "dotenv";
 
+
 // dotenv.config();
-
-// const transporter = nodemailer.createTransport({
-//   service: 'gmail',
-//   auth: {
-//     user: process.env.EMAIL_USER,
-//     pass: process.env.EMAIL_PASS,
-//   },
-//   connectionTimeout: 10000, 
-//   socketTimeout: 10000,
-// });
-
-// export const registerUser = async (req, res) => {
-//   try {
-//     const { name, email, phone } = req.body;
-//     console.log(`Registration attempt for: ${email}`);
-
-//     if (!name || !email || !phone) {
-//       return res.status(400).json({ success: false, message: "All fields are required" });
-//     }
-
-//     const existingUser = await User.findOne({ email });
-//     if (existingUser) {
-//       return res.status(400).json({ success: false, message: "User already exists" });
-//     }
-
-//     const otp = Math.floor(1000 + Math.random() * 9000).toString();
-
-//     // --- STRATEGY: Try Email, but don't stop if it fails ---
-//     let emailSent = false;
-//     try {
-//       await transporter.sendMail({
-//         from: `"MovieBooking Support" <${process.env.EMAIL_USER}>`,
-//         to: email.toLowerCase().trim(),
-//         subject: "Confirm your MovieBooking registration",
-//         html: `<h2>OTP: ${otp}</h2>`,
-//       });
-//       emailSent = true;
-//       console.log("✅ Email sent to:", email);
-//     } catch (mailError) {
-//       console.error("⚠️ Email blocked by Render. OTP for testing is:", otp);
-//       // Hum yahan error return nahi karenge, balki console mein OTP dikhayenge
-//     }
-
-//     // Database mein user hamesha create hoga
-//     await User.create({
-//       name,
-//       email: email.toLowerCase().trim(),
-//       phone,
-//       otp,
-//       otpExpiresAt: Date.now() + 5 * 60 * 1000,
-//     });
-
-//     res.status(201).json({ 
-//       success: true, 
-//       message: emailSent ? "OTP sent to email" : "Registration successful! (Check server logs for OTP)",
-//       debugOtp: process.env.NODE_ENV !== "production" ? otp : null // Local pe OTP response mein dikhega
-//     });
-
-//   } catch (error) {
-//     console.error("❌ Register Global Error:", error.message);
-//     res.status(500).json({ success: false, message: "Server Error" });
-//   }
-// };
-
-// // ... loginUser, verifyOtp aur baaki functions aapke wale hi rahenge
-
-// // --- LOGIN USER ---
-// export const loginUser = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-//     const user = await User.findOne({ email });
-
-//     if (!user || !(await bcrypt.compare(password, user.password))) {
-//       return res.status(400).json({ message: "Invalid credentials" });
-//     }
-
-//     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || "secret", { expiresIn: "7d" });
-
-//     // IMPORTANT: Cookie settings for Vercel/Render
-//     res.cookie("token", token, {
-//       httpOnly: true,
-//       secure: true,      // Must be true for HTTPS (Vercel)
-//       sameSite: "none",  // Must be 'none' for cross-domain cookies
-//       maxAge: 7 * 24 * 60 * 60 * 1000,
-//       path: "/"
-//     });
-
-//     res.json({ success: true, user: { name: user.name, email: user.email } });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
-// // --- VERIFY OTP ---
-// export const verifyOtp = async (req, res) => {
-//   try {
-//     const { phone, otp } = req.body;
-//     const user = await User.findOne({ phone });
-
-//     if (!user || user.otp !== otp || user.otpExpiresAt < Date.now()) {
-//       return res.status(400).json({ message: "Invalid or expired OTP" });
-//     }
-
-//     user.isVerified = true;
-//     user.otp = null;
-//     user.otpExpiresAt = null;
-//     await user.save();
-
-//     res.json({ success: true, message: "Verified" });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
-// // --- SET PASSWORD ---
-// export const setPassword = async (req, res) => {
-//   try {
-//     const { phone, password } = req.body;
-//     const user = await User.findOne({ phone });
-
-//     if (!user || !user.isVerified) {
-//       return res.status(400).json({ message: "Verification required" });
-//     }
-
-//     user.password = await bcrypt.hash(password, 10);
-//     await user.save();
-
-//     res.json({ success: true, message: "Password set successfully" });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
-// // --- LOGOUT ---
-// export const logoutUser = async (req, res) => {
-//   res.cookie("token", "", { 
-//     httpOnly: true, 
-//     secure: true, 
-//     sameSite: "none", 
-//     expires: new Date(0) 
-//   });
-//   res.json({ success: true, message: "Logged out" });
-// };
-
-// // --- GET DETAILS ---
-// export const getUserDetails = async (req, res) => {
-//   try {
-//     const user = await User.findById(req.user.id).select("-password");
-//     if (!user) return res.status(404).json({ success: false, message: "User not found" });
-//     res.json({ success: true, user });
-//   } catch (error) {
-//     res.status(500).json({ success: false, message: error.message });
-//   }
-// };
-
-
-
-import User from "../models/User.js";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import nodemailer from "nodemailer";
-import dotenv from "dotenv";
-import { sendEmail } from "../utils/sendEmail.js";
-
-dotenv.config();
 
 // const transporter = nodemailer.createTransport({
 //   service: "gmail", // Render par 'service' use karna zyada stable hai
@@ -356,7 +356,7 @@ dotenv.config();
 //   },
 // });
 
-// --- EMAIL PROMISE WRAPPER ---
+// // --- EMAIL PROMISE WRAPPER ---
 // const sendEmail = (mailOptions) => {
 //   return new Promise((resolve, reject) => {
 //     transporter.sendMail(mailOptions, (error, info) => {
@@ -371,7 +371,7 @@ dotenv.config();
 //   });
 // };
 
-// --- REGISTER USER ---
+// // --- REGISTER USER ---
 // export const registerUser = async (req, res) => {
 //   try {
 //     const { name, email, phone } = req.body;
@@ -431,141 +431,223 @@ dotenv.config();
 //   }
 // };
 
-// --- REGISTER USER ---
-export const registerUser = async (req, res) => {
+
+
+// // --- LOGIN USER ---
+// export const loginUser = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+//     const user = await User.findOne({ email });
+
+//     if (!user || !(await bcrypt.compare(password, user.password))) {
+//       return res.status(400).json({ success: false, message: "Invalid credentials" });
+//     }
+
+//     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || "secret", { expiresIn: "7d" });
+
+//     res.cookie("token", token, {
+//       httpOnly: true,
+//       secure: true,
+//       sameSite: "none",
+//       maxAge: 7 * 24 * 60 * 60 * 1000,
+//       path: "/"
+//     });
+
+//     res.json({ success: true, user: { name: user.name, email: user.email } });
+//   } catch (error) {
+//     res.status(500).json({ success: false, message: error.message });
+//   }
+// };
+
+// // --- VERIFY OTP ---
+// export const verifyOtp = async (req, res) => {
+//   try {
+//     const { phone, otp } = req.body;
+//     const user = await User.findOne({ phone });
+
+//     if (!user || user.otp !== otp || user.otpExpiresAt < Date.now()) {
+//       return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
+//     }
+
+//     user.isVerified = true;
+//     user.otp = null;
+//     user.otpExpiresAt = null;
+//     await user.save();
+
+//     res.json({ success: true, message: "Verified successfully" });
+//   } catch (error) {
+//     res.status(500).json({ success: false, message: error.message });
+//   }
+// };
+
+// // --- SET PASSWORD ---
+// export const setPassword = async (req, res) => {
+//   try {
+//     const { phone, password } = req.body;
+//     const user = await User.findOne({ phone });
+
+//     if (!user || !user.isVerified) {
+//       return res.status(400).json({ success: false, message: "Verification required" });
+//     }
+
+//     user.password = await bcrypt.hash(password, 10);
+//     await user.save();
+
+//     res.json({ success: true, message: "Password set successfully" });
+//   } catch (error) {
+//     res.status(500).json({ success: false, message: error.message });
+//   }
+// };
+
+// // --- LOGOUT ---
+// export const logoutUser = async (req, res) => {
+//   res.cookie("token", "", { 
+//     httpOnly: true, 
+//     secure: true, 
+//     sameSite: "none", 
+//     expires: new Date(0) 
+//   });
+//   res.json({ success: true, message: "Logged out" });
+// };
+
+// // --- GET DETAILS ---
+// export const getUserDetails = async (req, res) => {
+//   try {
+//     const user = await User.findById(req.user.id).select("-password");
+//     if (!user) return res.status(404).json({ success: false, message: "User not found" });
+//     res.json({ success: true, user });
+//   } catch (error) {
+//     res.status(500).json({ success: false, message: error.message });
+//   }
+// };
+
+
+
+//firebase
+
+import admin from "../config/firebaseAdmin.js";
+import User from "../models/User.js";
+import jwt from "jsonwebtoken";
+
+/**
+ * @route   POST /api/auth/firebase-login
+ * @desc    Login/Register user using Firebase Phone Auth
+ * @access  Public
+ */
+export const firebaseLogin = async (req, res) => {
   try {
-    const { name, email, phone } = req.body;
+    // 1️⃣ Get Firebase token from header
+    const authHeader = req.headers.authorization;
 
-    if (!name || !email || !phone) {
-      return res.status(400).json({ success: false, message: "All fields are required" });
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        success: false,
+        message: "Authorization token missing",
+      });
     }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ success: false, message: "User already exists" });
+    const idToken = authHeader.split("Bearer ")[1];
+
+    // 2️⃣ Verify Firebase ID token
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+
+    const phone = decodedToken.phone_number;
+    const firebaseUid = decodedToken.uid;
+
+    if (!phone || !firebaseUid) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Firebase token data",
+      });
     }
 
-    const otp = Math.floor(1000 + Math.random() * 9000).toString();
+    // 3️⃣ FIND OR CREATE USER (🔥 THIS IS WHAT YOU ASKED FOR)
+    let user = await User.findOne({ phone });
 
-    // ✅ RESEND EMAIL
-    await sendEmail({
-      to: email.toLowerCase().trim(),
-      subject: "Your MovieBooking OTP",
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px;">
-          <h2 style="color:#e50914;">Verification Code</h2>
-          <p>Hello <b>${name}</b>,</p>
-          <p>Your OTP is:</p>
-          <h1>${otp}</h1>
-          <p>Valid for 5 minutes.</p>
-        </div>
-      `,
-    });
-
-    await User.create({
-      name,
-      email: email.toLowerCase().trim(),
-      phone,
-      otp,
-      otpExpiresAt: Date.now() + 5 * 60 * 1000,
-    });
-
-    res.status(201).json({
-      success: true,
-      message: "OTP sent to your email inbox!",
-    });
-
-  } catch (error) {
-    console.error("Register Error:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
-  }
-};
-
-
-// --- LOGIN USER ---
-export const loginUser = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(400).json({ success: false, message: "Invalid credentials" });
+    if (!user) {
+      user = await User.create({
+        phone,
+        firebaseUid,
+        isVerified: true,
+      });
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || "secret", { expiresIn: "7d" });
+    // 4️⃣ Create your own JWT
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
+    // 5️⃣ Set JWT as HttpOnly cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: true,        // required on Render / HTTPS
+      sameSite: "none",    // required for cross-site cookies
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: "/"
     });
 
-    res.json({ success: true, user: { name: user.name, email: user.email } });
+    // 6️⃣ Send response
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      user: {
+        id: user._id,
+        phone: user.phone,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Firebase Login Error:", error.message);
+    res.status(401).json({
+      success: false,
+      message: "Invalid or expired Firebase token",
+    });
   }
 };
 
-// --- VERIFY OTP ---
-export const verifyOtp = async (req, res) => {
-  try {
-    const { phone, otp } = req.body;
-    const user = await User.findOne({ phone });
-
-    if (!user || user.otp !== otp || user.otpExpiresAt < Date.now()) {
-      return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
-    }
-
-    user.isVerified = true;
-    user.otp = null;
-    user.otpExpiresAt = null;
-    await user.save();
-
-    res.json({ success: true, message: "Verified successfully" });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// --- SET PASSWORD ---
-export const setPassword = async (req, res) => {
-  try {
-    const { phone, password } = req.body;
-    const user = await User.findOne({ phone });
-
-    if (!user || !user.isVerified) {
-      return res.status(400).json({ success: false, message: "Verification required" });
-    }
-
-    user.password = await bcrypt.hash(password, 10);
-    await user.save();
-
-    res.json({ success: true, message: "Password set successfully" });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// --- LOGOUT ---
-export const logoutUser = async (req, res) => {
-  res.cookie("token", "", { 
-    httpOnly: true, 
-    secure: true, 
-    sameSite: "none", 
-    expires: new Date(0) 
+/**
+ * @route   GET /api/auth/logout
+ * @desc    Logout user
+ * @access  Public
+ */
+export const logoutUser = (req, res) => {
+  res.cookie("token", "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    expires: new Date(0),
   });
-  res.json({ success: true, message: "Logged out" });
+
+  res.json({
+    success: true,
+    message: "Logged out successfully",
+  });
 };
 
-// --- GET DETAILS ---
+/**
+ * @route   GET /api/auth/me
+ * @desc    Get logged-in user details
+ * @access  Private
+ */
 export const getUserDetails = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
-    res.json({ success: true, user });
+    const user = await User.findById(req.user.id).select("-__v");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      user,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };
