@@ -7,7 +7,7 @@
 //     const { bookingId } = req.params;
 //     // Fetch booking details from DB (Mocking the data here for example)
 //     // const booking = await Booking.findById(bookingId).populate('user');
-    
+
 //     const booking = {
 //       movie: "Spider-Man: No Way Home",
 //       seats: ["Gold-12", "Gold-13"],
@@ -26,7 +26,7 @@
 //     doc.pipe(res);
 
 //     // --- Design the Ticket ---
-    
+
 //     // Background Border
 //     doc.rect(0, 0, doc.page.width, doc.page.height).fill("#1a1a1a");
 //     doc.rect(10, 10, doc.page.width - 20, doc.page.height - 20).stroke("#ef4444");
@@ -43,7 +43,7 @@
 //     doc.fillColor("#ffffff").fontSize(10);
 //     doc.text(`DATE & TIME:`, { continued: true }).fillColor("#aaa").text(` ${booking.showTime}`);
 //     doc.moveDown(0.5);
-    
+
 //     doc.fillColor("#ffffff").text(`SEATS:`, { continued: true }).fillColor("#ef4444").text(` ${booking.seats.join(", ")}`);
 //     doc.moveDown(0.5);
 
@@ -99,10 +99,10 @@
 //     }
 
 //     const bookings = await Booking.find({ movie, showTime });
-    
+
 //     // Sabhi bookings se seats ko ek single array mein merge karna
 //     const allBookedSeats = bookings.reduce((acc, curr) => acc.concat(curr.seats), []);
-    
+
 //     res.status(200).json({ 
 //       success: true, 
 //       bookedSeats: allBookedSeats 
@@ -114,21 +114,11 @@
 
 import Booking from "../models/Booking.js";
 import PDFDocument from "pdfkit";
-import nodemailer from "nodemailer";
+import transporter from "../config/nodemailer.js"; // Import shared transporter
 
 // Helper function: Email bhejne ke liye
 const sendTicketEmail = async (userEmail, userName, booking, pdfBuffer) => {
   try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
-      secure: true, 
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
     const mailOptions = {
       from: `"Movie Magic" <${process.env.EMAIL_USER}>`,
       to: userEmail,
@@ -224,7 +214,7 @@ export const createBooking = async (req, res) => {
     });
 
     // --- START PREMIUM DESIGN ---
-    
+
     // 1. Background (Dark Theme)
     doc.rect(0, 0, doc.page.width, doc.page.height).fill("#121212");
 
@@ -238,7 +228,7 @@ export const createBooking = async (req, res) => {
     // 4. Movie Title (Big & Bold)
     doc.moveDown(2.5);
     doc.fillColor("#dc2626").fontSize(18).font("Helvetica-Bold").text(movie.toUpperCase(), { align: "center" });
-    
+
     // Subtle Divider
     doc.moveDown(0.5);
     doc.moveTo(30, doc.y).lineTo(doc.page.width - 30, doc.y).strokeColor("#222").stroke();
@@ -296,5 +286,5 @@ export const getBookedSeats = async (req, res) => {
 
 // Agar routes mein downloadTicket import hai, toh empty function rakhte hain crash na ho
 export const downloadTicket = (req, res) => {
-    res.status(400).send("Please check your email for the ticket.");
+  res.status(400).send("Please check your email for the ticket.");
 };
