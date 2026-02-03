@@ -17,20 +17,28 @@ export const registerUser = async (req, res) => {
     const { name, email, phone } = req.body;
     console.log(`Attempting registration for: ${email}`);
 
+    const normalizedEmail = email.toLowerCase().trim();
+
     if (!name || !email || !phone) {
       return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({
+      $or: [{ email: normalizedEmail }, { phone }]
+    });
+
     if (existingUser) {
-      return res.status(400).json({ success: false, message: "User already exists" });
+      if (existingUser.email === normalizedEmail) {
+        return res.status(400).json({ success: false, message: "User already exists with this email" });
+      }
+      return res.status(400).json({ success: false, message: "User already exists with this phone number" });
     }
 
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
 
     const mailOptions = {
       from: `"MovieBooking Support" <${process.env.EMAIL_USER}>`,
-      to: email.toLowerCase().trim(),
+      to: normalizedEmail,
       subject: "Your MovieBooking OTP",
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee;">
@@ -58,7 +66,7 @@ export const registerUser = async (req, res) => {
     // Create User only if email succeeds
     await User.create({
       name,
-      email: email.toLowerCase().trim(),
+      email: normalizedEmail,
       phone,
       otp,
       otpExpiresAt: Date.now() + 5 * 60 * 1000,
