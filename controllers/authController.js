@@ -55,10 +55,14 @@ export const registerUser = async (req, res) => {
       console.log("✅ OTP Email sent successfully");
     } catch (mailError) {
       console.error("❌ Email Delivery Error:", mailError);
+
+      // Extract detailed error if available from Brevo
+      const detailedError = mailError.response ? mailError.response.body : mailError.message;
+
       return res.status(500).json({
         success: false,
-        message: "Email delivery failed. Please check your email or try again later.",
-        error: mailError.message
+        message: "Email delivery failed. This usually happens if the Sender Email is not verified in Brevo or the API Key is invalid.",
+        error: detailedError
       });
     }
 
@@ -85,7 +89,16 @@ export const loginUser = async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (!user) {
+      return res.status(400).json({ success: false, message: "User not found" });
+    }
+
+    if (!user.password) {
+      return res.status(400).json({ success: false, message: "Account setup incomplete. Please verify OTP and set password." });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
       return res.status(400).json({ success: false, message: "Invalid credentials" });
     }
 
