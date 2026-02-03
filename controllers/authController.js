@@ -1,15 +1,14 @@
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import transporter from "../config/nodemailer.js"; // Import shared transporter
+import { sendEmail } from "../config/brevoEmail.js"; // Import Brevo sender
 import dotenv from "dotenv";
 
 dotenv.config();
 
-// --- EMAIL WRAPPER ---
-const sendEmail = async (mailOptions) => {
-  return await transporter.sendMail(mailOptions);
-};
+// --- EMAIL WRAPPER (Optional now, but kept for compatibility) ---
+// The imported sendEmail function already handles the logic.
+
 
 // --- REGISTER USER ---
 export const registerUser = async (req, res) => {

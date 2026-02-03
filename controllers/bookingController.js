@@ -114,25 +114,34 @@
 
 import Booking from "../models/Booking.js";
 import PDFDocument from "pdfkit";
-import transporter from "../config/nodemailer.js"; // Import shared transporter
+import { sendEmail } from "../config/brevoEmail.js";
 
 // Helper function: Email bhejne ke liye
 const sendTicketEmail = async (userEmail, userName, booking, pdfBuffer) => {
   try {
-    const mailOptions = {
-      from: `"Movie Magic" <${process.env.EMAIL_USER}>`,
+    const emailData = {
       to: userEmail,
       subject: `Booking Confirmed: ${booking.movie}`,
       text: `Hi ${userName},\n\nYour booking for ${booking.movie} is successful. Please find your ticket attached.\n\nSeats: ${booking.seats.join(", ")}\nShow: ${booking.showTime}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+          <h2 style="color: #e50914;">Booking Confirmed!</h2>
+          <p>Hello <b>${userName}</b>,</p>
+          <p>Your booking for <b>${booking.movie}</b> is confirmed.</p>
+          <p><b>Seats:</b> ${booking.seats.join(", ")}</p>
+          <p><b>Show Time:</b> ${booking.showTime}</p>
+          <p>Please find your ticket attached.</p>
+        </div>
+      `,
       attachments: [
         {
-          filename: `Ticket-${booking._id}.pdf`,
-          content: pdfBuffer,
+          name: `Ticket-${booking._id}.pdf`,
+          content: pdfBuffer.toString('base64'), // Brevo requires base64 content
         },
       ],
     };
 
-    await transporter.sendMail(mailOptions);
+    await sendEmail(emailData);
     console.log("✅ Email sent to:", userEmail);
   } catch (error) {
     console.error("❌ Email error:", error.message);

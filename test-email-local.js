@@ -1,43 +1,25 @@
-import nodemailer from 'nodemailer';
+import { sendEmail } from "./config/brevoEmail.js";
 import dotenv from 'dotenv';
 dotenv.config();
 
-console.log("--- Testing Email Confirmation Locally ---");
-console.log("User:", process.env.EMAIL_USER);
-// Mask password
-const pass = process.env.EMAIL_PASS || "";
-console.log("Pass:", pass.substring(0, 3) + "..." + pass.substring(pass.length - 3));
-console.log("Host:", process.env.EMAIL_HOST);
-console.log("Port:", process.env.EMAIL_PORT);
+console.log("--- Testing Brevo Email Confirmation Locally ---");
+console.log("Sender:", process.env.EMAIL_USER);
+console.log("API Key Present:", !!process.env.BREVO_API_KEY);
 
-const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: parseInt(process.env.EMAIL_PORT),
-    secure: parseInt(process.env.EMAIL_PORT) === 465,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
-
-transporter.verify(function (error, success) {
-    if (error) {
-        console.log(" Connection Failed!");
-        console.error(error);
-    } else {
-        console.log("✅ Connection Successful! Server is ready to take our messages");
-
-        // Try sending a real email to self
-        transporter.sendMail({
-            from: process.env.EMAIL_USER,
+const runTest = async () => {
+    try {
+        console.log("⏳ Sending test email...");
+        const result = await sendEmail({
             to: process.env.EMAIL_USER,
-            subject: "Test Email from Localhost",
-            text: "If you see this, Nodemailer is working correctly!"
-        }).then(info => {
-            console.log(" Test Email Sent!", info.messageId);
-        }).catch(err => {
-            console.log(" Sending Failed!");
-            console.error(err);
+            subject: "Test Email from Localhost (Brevo)",
+            text: "If you see this, Brevo API is working correctly!",
+            html: "<h3>Brevo Working!</h3><p>If you see this, Brevo API is working correctly!</p>"
         });
+        console.log("✅ Test Email Sent!", result.messageId);
+    } catch (error) {
+        console.log("❌ Sending Failed!");
+        console.error(error);
     }
-});
+};
+
+runTest();
