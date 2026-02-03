@@ -16,6 +16,13 @@ dotenv.config();
 const port = parseInt(process.env.EMAIL_PORT) || 587;
 const isSecure = port === 465;
 
+console.log("📧 Initializing Nodemailer with:");
+console.log(`   - Host: ${process.env.EMAIL_HOST || "smtp.gmail.com"}`);
+console.log(`   - Port: ${port}`);
+console.log(`   - Secure: ${isSecure}`);
+console.log(`   - User: ${process.env.EMAIL_USER ? "✅ Loaded" : "❌ MISSING"}`);
+console.log(`   - Pass: ${process.env.EMAIL_PASS ? "✅ Loaded" : "❌ MISSING"}`);
+
 const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST || "smtp.gmail.com",
     port: port,

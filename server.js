@@ -1,7 +1,5 @@
+import "dotenv/config"; // Load env vars before ANYTHING else
 import express from "express";
-import dotenv from "dotenv";
-// import "dotenv/config";
-
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
@@ -11,9 +9,6 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 import movieRoutes from "./routes/movieRoutes.js";
 import fs from "fs";
 import path from "path";
-
-
-dotenv.config();
 
 connectDB();
 
@@ -74,8 +69,8 @@ app.get('/images/:filename', (req, res) => {
   });
 });
 
-app.use(express.json()); 
-app.use(express.urlencoded({ extended: true })); 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 
 app.use(cookieParser());
@@ -86,6 +81,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/movies", movieRoutes);
+
+import debugRoutes from "./routes/debugRoutes.js";
+app.use("/api/debug", debugRoutes);
 
 
 app.get("/", (req, res) => {
