@@ -36,3 +36,16 @@ export const getAllMovies = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+
+export const getMovieById = async (req, res) => {
+  try{
+    const movie = await Movie.findById(req.params.id);
+    if(!movie){
+       return res.status(404).json({success: false, message:"Movie not found"});
+    }
+     res.status(200).json({success: true, movie});
+  }catch(error){
+    res.status(500).json({success: false , message: error.message});
+  }
+};

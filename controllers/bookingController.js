@@ -148,54 +148,6 @@ const sendTicketEmail = async (userEmail, userName, booking, pdfBuffer) => {
   }
 };
 
-// 1. Create Booking (Exports exactly as 'createBooking')
-// export const createBooking = async (req, res) => {
-//   try {
-//     const { movie, seats, showTime, totalPrice, paymentId } = req.body;
-
-//     if (!movie || !seats || !showTime || !paymentId) {
-//       return res.status(400).json({ success: false, message: "Missing fields" });
-//     }
-
-//     const booking = await Booking.create({
-//       user: req.user._id,
-//       movie,
-//       seats,
-//       showTime,
-//       totalPrice,
-//       paymentId
-//     });
-
-//     // Memory mein PDF banana email ke liye
-//     const doc = new PDFDocument({ size: "A6", margin: 30 });
-//     let buffers = [];
-//     doc.on("data", buffers.push.bind(buffers));
-//     doc.on("end", async () => {
-//       const pdfBuffer = Buffer.concat(buffers);
-//       await sendTicketEmail(req.user.email, req.user.name, booking, pdfBuffer);
-//     });
-
-//     // PDF Design
-//     doc.rect(0, 0, doc.page.width, doc.page.height).fill("#1a1a1a");
-//     doc.rect(10, 10, doc.page.width - 20, doc.page.height - 20).stroke("#ef4444");
-//     doc.fillColor("#ef4444").fontSize(16).font("Helvetica-Bold").text("MOVIE MAGIC", { align: "center" });
-//     doc.moveDown(0.5);
-//     doc.fillColor("#ffffff").fontSize(12).text(movie.toUpperCase(), { align: "center" });
-//     doc.moveDown();
-//     doc.fontSize(10).font("Helvetica").fillColor("#ffffff").text(`DATE: ${showTime}`);
-//     doc.text(`SEATS: ${seats.join(", ")}`);
-//     doc.fillColor("#ffffff").text(`Name: `, { continued: true }).fillColor("#aaa").text(req.user.name); 
-//     doc.moveDown();
-//     doc.rect(25, 200, 250, 40).fill("#333");
-//     doc.fillColor("#ffffff").text(`PAID: INR ${totalPrice}`, 25, 215, { align: "center" });
-//     doc.end();
-
-//     res.status(201).json({ success: true, message: "Ticket sent to email!" });
-//   } catch (error) {
-//     res.status(500).json({ success: false, message: error.message });
-//   }
-// };
-
 
 export const createBooking = async (req, res) => {
   try {
